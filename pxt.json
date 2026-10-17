@@ -3,11 +3,9 @@
     "description": "",
     "dependencies": {
         "core": "*",
-        "microphone": "*",
         "bluetooth": "*"
     },
     "files": [
-        "main.blocks",
         "main.ts",
         "README.md"
     ],
@@ -21,7 +19,7 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "blocksprj",
+    "preferredEditor": "tsprj",
     "yotta": {
         "config": {
             "microbit-dal": {

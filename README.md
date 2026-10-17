@@ -1,3 +1,8 @@
+## Crude gamepad support
+
+Go to this page and connect to your microbit:
+https://straycatnz.github.io/PybricksGamepads/bots.html
+
 
 > Open this page at [https://straycatnz.github.io/ble-uart-gamepad/](https://straycatnz.github.io/ble-uart-gamepad/)
 
