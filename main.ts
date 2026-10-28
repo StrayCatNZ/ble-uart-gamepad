@@ -71,7 +71,7 @@ namespace ble_uart_gamepad
     //% num.max=15
     //% blockId="isButtonPressed" block="Is button %num pressed"
     export function button_is_pressed(num: ButtonList) {
-        if (num >= 0 && num < 16) {
+        if (num >= 0 && num < 16 && rcv[num] != undefined) {
             return (rcv[6] & (2 ** num)) > 0 ? 1 : 0
         } else {
             return 0
@@ -93,7 +93,7 @@ namespace ble_uart_gamepad
     //% compileHiddenArguments=1
     //% expandableArgumentBreaks="2"
     export function axis_value_range(num: AxisList, minV: number, maxV: number) {
-        if (num >= 0 && num < 6) {
+        if (num >= 0 && num < 6 && rcv[num] != undefined) {
             return Math.map(rcv[num], -100, 100, minV, maxV)
         } else {
             return 0
