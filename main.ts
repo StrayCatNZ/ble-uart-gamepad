@@ -1,7 +1,7 @@
 /**
 * ble_uart_gamepad
 */
-//% color=#ff0000  icon="\uf11b" block="gamepad" blockId="gamepad"
+//% color=#ff0000  icon="\uf11b" block="Gamepad" blockId="gamepad"
 namespace ble_uart_gamepad
 {
     let rcv: number[] = []
