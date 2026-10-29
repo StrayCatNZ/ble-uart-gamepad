@@ -6,6 +6,8 @@ namespace ble_uart_gamepad
 {
     let rcv: number[] = []
 
+    let onUpdate = () => {}
+
     /**
     * ButtonList
     */
@@ -63,19 +65,31 @@ namespace ble_uart_gamepad
     }
 
     /**
-     * Get state of gamepad button (0 or 1)
+     * Get state of gamepad button
      * @param num button number (0-15)
      */
     //% weight=90
     //% num.min=0
     //% num.max=15
     //% blockId="isButtonPressed" block="Is button %num pressed"
-    export function button_is_pressed(num: ButtonList) {
-        if (num >= 0 && num < 16 && rcv[num] !== undefined) {
-            return (rcv[6] & (2 ** num)) > 0 ? 1 : 0
-        } else {
-            return 0
-        }
+    export function button_is_pressed(num: ButtonList): boolean {
+        return (num >= 0 && num < 16 && ((rcv[6] & (2 ** num)) > 0));
+    }
+
+    /**
+     * Get value of gamepad button (0 or 100)
+     * @param num button number (0-15)
+     */
+    //% weight=80
+    //% num.min=0
+    //% num.max=15
+    //% blockId="getButtonValue" block="Get value of button %num|| Released:%minV Pressed:%maxV"
+    //% minV.defl=0
+    //% maxV.defl=100
+    //% compileHiddenArguments=1
+    //% expandableArgumentBreaks="2"
+    export function button_value(num: ButtonList, minV: number, maxV: number): number {
+        return button_is_pressed(num) ? maxV : minV;
     }
 
     /**
@@ -92,12 +106,19 @@ namespace ble_uart_gamepad
     //% maxV.defl=100
     //% compileHiddenArguments=1
     //% expandableArgumentBreaks="2"
-    export function axis_value_range(num: AxisList, minV: number, maxV: number) {
-        if (num >= 0 && num < 6 && rcv[num] !== undefined) {
-            return Math.map(rcv[num], -100, 100, minV, maxV)
+    export function axis_value_range(num: AxisList, minV: number, maxV: number): number {
+        if (num >= 0 && num < 6) {
+            return Math.map(rcv[num] || 0, -100, 100, minV, maxV)
         } else {
             return 0
         }
+    }
+
+    //% weight=40
+    //% blockId="onUpdateReceived" block="On update received"
+    //% advanced=1
+    export function onUpdateReceived(body: () => void) {
+        onUpdate = body;
     }
 
     export function data_received() {
@@ -107,6 +128,7 @@ namespace ble_uart_gamepad
             rcv.push(parseInt(str.substr(i * 2, 2), 16) - 100)
         }
         rcv.push(parseInt(str.substr(6 * 2), 16))
+        onUpdate()
     }
 }
 bluetooth.onUartDataReceived(serial.delimiters(Delimiters.NewLine), ble_uart_gamepad.data_received)
