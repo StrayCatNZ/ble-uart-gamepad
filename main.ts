@@ -8,6 +8,8 @@ namespace ble_uart_gamepad
 
     let onUpdate = () => {}
 
+    let events: any[] = []
+
     /**
     * ButtonList
     */
@@ -64,6 +66,13 @@ namespace ble_uart_gamepad
         RIGHT_TRIGGER
     }
 
+    //% weight=100
+    //% blockId=onButtonPressed block="on button %num pressed"
+    export function onButtonPressed(num: ButtonList, body: () => void): void {
+        events[num] = num;
+        control.onEvent(666666 + num, 1, body, EventFlags.DropIfBusy)
+    }
+
     /**
      * Get state of gamepad button
      * @param num button number (0-15)
@@ -71,7 +80,7 @@ namespace ble_uart_gamepad
     //% weight=90
     //% num.min=0
     //% num.max=15
-    //% blockId="isButtonPressed" block="Is button %num pressed"
+    //% blockId="isButtonPressed" block="is button %num pressed"
     export function button_is_pressed(num: ButtonList): boolean {
         return (num >= 0 && num < 16 && ((rcv[6] & (2 ** num)) > 0));
     }
@@ -83,7 +92,7 @@ namespace ble_uart_gamepad
     //% weight=80
     //% num.min=0
     //% num.max=15
-    //% blockId="getButtonValue" block="Get value of button %num|| Released:%minV Pressed:%maxV"
+    //% blockId="getButtonValue" block="get value of button %num|| Released:%minV Pressed:%maxV"
     //% minV.defl=0
     //% maxV.defl=100
     //% compileHiddenArguments=1
@@ -99,7 +108,7 @@ namespace ble_uart_gamepad
      * @param maxV the upper bound of the value's target range
      */
     //% weight=70
-    //% blockId="getAxisValueRange" block="Get value of axis %num|| range (%minV,%maxV)"
+    //% blockId="getAxisValueRange" block="get value of axis %num|| range (%minV,%maxV)"
     //% num.min=0
     //% num.max=5
     //% minV.defl=-100
@@ -115,20 +124,32 @@ namespace ble_uart_gamepad
     }
 
     //% weight=40
-    //% blockId="onUpdateReceived" block="On update received"
+    //% blockId="onUpdateReceived" block="on update received"
     //% advanced=1
     export function onUpdateReceived(body: () => void) {
         onUpdate = body;
     }
 
     export function data_received() {
-        let str = bluetooth.uartReadUntil(serial.delimiters(Delimiters.NewLine))
+        let str = bluetooth.uartReadUntil(serial.delimiters(Delimiters.NewLine));
+        let prev = rcv[6];
+        
         rcv = []
         for (let i = 0; i <= 5; i++) {
             rcv.push(parseInt(str.substr(i * 2, 2), 16) - 100)
         }
         rcv.push(parseInt(str.substr(6 * 2), 16))
+
         onUpdate()
+
+        events.forEach((v,i)=>{
+            let mask = 2 ** i;
+            if ((rcv[6] & mask) > 0 && (prev & mask) == 0) {
+                control.raiseEvent(666666 + i, 1)
+            }
+        });
+
+
     }
 }
 bluetooth.onUartDataReceived(serial.delimiters(Delimiters.NewLine), ble_uart_gamepad.data_received)
